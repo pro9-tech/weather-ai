@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>실시간 날씨 AI 비서</title>
+    <!-- 고급 서체 적용 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- 헤더 영역 -->
+        <header class="app-header">
+            <div class="logo">
+                <span class="logo-icon">🌤️</span>
+                <h1>날씨AI</h1>
+            </div>
+            <p class="subtitle">실시간 기상청 데이터와 제미나이 AI가 만나 날씨를 친절하게 알려드려요.</p>
+        </header>
+
+        <!-- 채팅창 영역 -->
+        <main class="chat-wrapper">
+            <div class="chat-container" id="chatContainer">
+                <!-- AI의 최초 인사말 -->
+                <div class="message ai-message">
+                    <div class="avatar">🤖</div>
+                    <div class="message-bubble">
+                        안녕하세요, 체이스! 궁금한 지역의 날씨를 물어보세요.<br>
+                        예: <strong>"서울 마포구 합정동 날씨 알려줘"</strong> 또는 <strong>"부산 해운대 지금 비 와?"</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 빠른 질문용 추천 칩 -->
+            <div class="chips-container">
+                <button class="chip" onclick="sendPreset('서울시 마포구 합정동 날씨 어때?')">📍 서울 마포구</button>
+                <button class="chip" onclick="sendPreset('부산시 해운대구 우동 날씨 알려줘')">🏖️ 부산 해운대</button>
+                <button class="chip" onclick="sendPreset('제주특별자치도 제주시 이도이동 날씨 어때?')">🍊 제주 제주시</button>
+            </div>
+        </main>
+
+        <!-- 입력창 영역 -->
+        <footer class="input-wrapper">
+            <form id="chatForm" class="input-container">
+                <input type="text" id="userInput" placeholder="동네 이름과 함께 질문을 입력해 주세요..." required autocomplete="off">
+                <button type="submit" id="sendBtn">
+                    <svg class="send-icon" viewBox="0 0 24 24">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </form>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

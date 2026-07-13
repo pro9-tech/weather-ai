@@ -1,0 +1,13 @@
+{
+  "name": "weather-ai-app",
+  "version": "1.0.0",
+  "description": "실시간 날씨 AI 연동 서비스",
+  "main": "api/chat.js",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.11.0",
+    "@supabase/supabase-js": "^2.39.8"
+  }
+}
