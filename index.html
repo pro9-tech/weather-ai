@@ -21,6 +21,18 @@
             <p class="subtitle">실시간 기상청 데이터와 제미나이 AI가 만나 날씨를 친절하게 알려드려요.</p>
         </header>
 
+        <!-- 다크 테마 OOTD 위젯 -->
+        <div id="ootd-widget" style="text-align: center; padding: 15px; background: rgba(255, 255, 255, 0.08); border-radius: 12px; margin: 15px 0; border: 1px solid rgba(255, 255, 255, 0.1); color: #e2e8f0; backdrop-filter: blur(10px);">
+            <div id="pet-avatar" style="font-size: 2.5rem; margin-bottom: 8px;">⏳</div>
+            <p id="ootd-text" style="margin: 0; font-size: 1.05rem; font-weight: 500;">현재 날씨를 분석 중입니다...</p>
+        </div>
+
+        <!-- AI 호출 버튼 2개 추가 -->
+        <div id="ai-trigger-btns" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+            <button onclick="triggerScheduleAI()" style="padding: 10px 15px; border-radius: 8px; border: none; background: rgba(76, 175, 80, 0.8); color: white; cursor: pointer; font-weight: bold;">📅 스케줄 피드백 받기</button>
+            <button onclick="triggerMusicAI()" style="padding: 10px 15px; border-radius: 8px; border: none; background: rgba(33, 150, 243, 0.8); color: white; cursor: pointer; font-weight: bold;">🎵 추천 음악 보기</button>
+        </div>
+
         <!-- 채팅창 영역 -->
         <main class="chat-wrapper">
             <div class="chat-container" id="chatContainer">
@@ -34,12 +46,8 @@
                 </div>
             </div>
 
-            <!-- 빠른 질문용 추천 칩 -->
-            <div class="chips-container">
-                <button class="chip" onclick="sendPreset('서울시 마포구 합정동 날씨 어때?')">📍 서울 마포구</button>
-                <button class="chip" onclick="sendPreset('부산시 해운대구 우동 날씨 알려줘')">🏖️ 부산 해운대</button>
-                <button class="chip" onclick="sendPreset('제주특별자치도 제주시 이도이동 날씨 어때?')">🍊 제주 제주시</button>
-            </div>
+            <!-- 동적 최근 검색 위치 버튼 컨테이너 -->
+            <div id="location-chips" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;"></div>
         </main>
 
         <!-- 입력창 영역 -->
