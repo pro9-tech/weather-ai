@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isSilent) appendMessage(messageText, 'user');
         userInput.value = '';
 
-        const loadingBubble = isSilent ? null : appendMessage('날씨 데이터 분석 중...', 'ai');
+        const loadingBubble = isSilent ? null : appendMessage('요청을 처리 중입니다...', 'ai');
 
         try {
             const bodyData = { message: messageText };
@@ -104,7 +104,29 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 💡 GPS 호출 로직 강화 및 에러 알림
+    // 💡 버튼 2개 클릭 이벤트 추가 완료
+    const btnSchedule = document.querySelector('.btn-schedule');
+    const btnMusic = document.querySelector('.btn-music');
+
+    if (btnSchedule) {
+        btnSchedule.addEventListener('click', () => {
+            // 입력창에 적어둔 글이 있으면 그걸 포함해서 보내고, 없으면 기본 양식을 채워줌
+            const currentVal = userInput.value.trim();
+            if (currentVal) {
+                sendMessage(`${currentVal} - 이 스케줄에 대한 날씨 피드백 부탁해`);
+            } else {
+                userInput.value = "오늘 오후 3시 외부 미팅 있어. 날씨 대비 스케줄 팁 알려줘.";
+                userInput.focus();
+            }
+        });
+    }
+
+    if (btnMusic) {
+        btnMusic.addEventListener('click', () => {
+            sendMessage("현재 날씨에 딱 어울리는 음악 3곡 추천해 줘. (장르, 곡명, 유튜브 주소 포함)");
+        });
+    }
+
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
@@ -113,7 +135,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 sendMessage('현재 내 위치 날씨 알려줘', true, lat, lon);
             },
             (error) => {
-                // 브라우저 권한 차단 시 경고창 띄우기
                 console.warn('위치 권한 거부됨:', error.message);
                 alert("브라우저 위치 권한이 차단되어 있습니다. 주소창 좌측의 자물쇠/주의 아이콘을 눌러 위치 권한을 '허용'해주세요.\n(기본 위치인 서울로 시작합니다.)");
                 sendMessage('서울 마포구 현재 날씨 알려줘', true);

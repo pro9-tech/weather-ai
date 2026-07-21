@@ -56,13 +56,11 @@ module.exports = async (req, res) => {
     let lat = 37.549;
     let lon = 126.913;
 
-    // 💡 최적화 핵심: 프론트에서 실제 GPS를 넘겨주면 제미나이 안 거치고 즉시 패스!
     if (clientLat && clientLon) {
       location = '현재 접속하신 위치';
       lat = clientLat;
       lon = clientLon;
     } else {
-      // 텍스트로 검색한 경우에만 제미나이한테 위경도 추출을 시킴
       try {
         const geocodePrompt = `"${message}" 이 문장에서 한국 지역명, 위도, 경도만 추출해.`;
         const geocodeResult = await geoModel.generateContent(geocodePrompt);
@@ -75,7 +73,6 @@ module.exports = async (req, res) => {
       }
     }
 
-    // 곧바로 Open-Meteo 직접 호출 (매우 빠름)
     const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code&timezone=Asia/Seoul`;
     const weatherResponse = await fetch(weatherUrl);
     const weatherJson = await weatherResponse.json();
@@ -87,13 +84,19 @@ module.exports = async (req, res) => {
       WM_CODE: weatherJson.current?.weather_code
     };
 
+    // 💡 변경된 핵심 프롬프트: 사용자 요청(음악, 스케줄 등)에 동적으로 대응하고 이모지 깨짐 방지
     const weatherPrompt = `당신은 똑똑한 날씨 AI 비서입니다. 사용자를 "체이스"라고 부르세요.
-질문: "${message}"
+사용자 요청: "${message}"
 지역: ${location}
 실시간 기상 데이터: ${JSON.stringify(weatherData)}
-코드해석(TA:기온℃, REH:습도%, PREP:강수량mm / WM_CODE: 0맑음, 1~3흐림, 45~48안개, 51~55이슬비, 61~65비, 71~75눈)
 
-위 데이터를 바탕으로 친절하게 날씨 상황을 설명하고 그 날씨에 꼭 맞는 옷차림(상의, 하의)을 추천하세요.`;
+지시사항:
+1. 사용자의 "요청"에 맞게 reply를 작성하세요.
+   - 날씨/옷차림 질문이면 날씨 설명과 옷 추천을 하세요.
+   - 스케줄 관련 질문이면 날씨에 대비한 스케줄 조언을 하세요.
+   - 음악 추천을 원하면 현재 날씨에 어울리는 음악 3곡을 장르, 곡명, 유튜브 검색 주소(https://www.youtube.com/results?search_query=가수+제목)를 포함하여 리스트로 추천하세요.
+2. summary, weatherIcon, topIcon, bottomIcon은 항상 현재 날씨에 맞게 채워주세요.
+3. [중요] bottomIcon(하의 이모지)는 윈도우에서 깨짐 현상을 방지하기 위해 반드시 👖(청바지), 👗(원피스/치마) 같은 보편적이고 오래된 이모지만 사용하세요. (🩳 반바지 이모지는 절대 사용 금지)`;
 
     const weatherResult = await textModel.generateContent(weatherPrompt);
     const parsedResult = JSON.parse(weatherResult.response.text());
