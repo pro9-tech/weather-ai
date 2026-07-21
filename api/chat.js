@@ -23,8 +23,9 @@ const geoSchema = {
   required: ["location", "lat", "lon"]
 };
 
+// 💡 요청하신 gemini-3.5-flash 로 고정 완료
 const geoModel = genAI.getGenerativeModel({
-  model: 'gemini-1.5-flash',
+  model: 'gemini-3.5-flash',
   generationConfig: { responseMimeType: 'application/json', responseSchema: geoSchema }
 });
 
@@ -40,8 +41,9 @@ const weatherSchema = {
   required: ["summary", "reply", "weatherIcon", "topIcon", "bottomIcon"]
 };
 
+// 💡 요청하신 gemini-3.5-flash 로 고정 완료
 const textModel = genAI.getGenerativeModel({
-  model: 'gemini-1.5-flash',
+  model: 'gemini-3.5-flash',
   generationConfig: { responseMimeType: 'application/json', responseSchema: weatherSchema }
 });
 
