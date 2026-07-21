@@ -24,7 +24,7 @@ const geoSchema = {
 };
 
 const geoModel = genAI.getGenerativeModel({
-  model: 'gemini-3.5-flash',
+  model: 'gemini-1.5-flash',
   generationConfig: { responseMimeType: 'application/json', responseSchema: geoSchema }
 });
 
@@ -41,14 +41,15 @@ const weatherSchema = {
 };
 
 const textModel = genAI.getGenerativeModel({
-  model: 'gemini-3.5-flash',
+  model: 'gemini-1.5-flash',
   generationConfig: { responseMimeType: 'application/json', responseSchema: weatherSchema }
 });
 
 module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST 메소드만 허용됩니다.' });
 
-  const { message, lat: clientLat, lon: clientLon } = req.body;
+  // 💡 프론트엔드에서 넘어오는 isSilent 값 수신
+  const { message, lat: clientLat, lon: clientLon, isSilent } = req.body;
   if (!message) return res.status(400).json({ error: '메시지가 비어있습니다.' });
 
   try {
@@ -73,18 +74,70 @@ module.exports = async (req, res) => {
       }
     }
 
+    // Open-Meteo 기상청 호출 (무료, 한도 제한 없음)
     const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code&timezone=Asia/Seoul`;
     const weatherResponse = await fetch(weatherUrl);
     const weatherJson = await weatherResponse.json();
 
+    const temp = weatherJson.current?.temperature_2m ?? 20;
+    const humidity = weatherJson.current?.relative_humidity_2m ?? 50;
+    const prep = weatherJson.current?.precipitation ?? 0;
+    const weatherCode = weatherJson.current?.weather_code ?? 0;
+
+    // =========================================================================
+    // 💡 [핵심 추가] isSilent = true (페이지 접속 시 자동 로딩) 처리
+    // Gemini API 및 Supabase DB 저장을 전혀 하지 않고, 자체 계산으로 0.1초만에 응답!
+    // =========================================================================
+    if (isSilent) {
+      // 1. 날씨 이모지 및 요약
+      let weatherIcon = '☀️';
+      let weatherState = '맑음';
+      if (weatherCode >= 1 && weatherCode <= 3) { weatherIcon = '⛅'; weatherState = '구름 조금'; }
+      if (weatherCode >= 45 && weatherCode <= 48) { weatherIcon = '🌫️'; weatherState = '안개'; }
+      if (weatherCode >= 51 && weatherCode <= 65) { weatherIcon = '🌧️'; weatherState = '비'; }
+      if (weatherCode >= 71) { weatherIcon = '❄️'; weatherState = '눈'; }
+
+      // 2. 온도별 옷차림 이모지 (윈도우 깨짐 방지 안전 이모지)
+      let topIcon = '👕';
+      let bottomIcon = '👖';
+
+      if (temp >= 28) {
+        topIcon = '🎽'; // 민소매/반팔
+        bottomIcon = '👖';
+      } else if (temp >= 20) {
+        topIcon = '👕'; // 반팔/칠부
+        bottomIcon = '👖';
+      } else if (temp >= 12) {
+        topIcon = '👔'; // 셔츠/맨투맨
+        bottomIcon = '👖';
+      } else {
+        topIcon = '🧥'; // 외투/코트
+        bottomIcon = '👖';
+      }
+
+      const summaryText = `체이스님, ${location}은 현재 ${temp}°C로 ${weatherState} 상태예요!`;
+
+      // Gemini 호출 없이 즉시 반환 (API 한도 0 소모!)
+      return res.status(200).json({
+        reply: null,
+        location: location,
+        summary: summaryText,
+        weatherIcon: weatherIcon,
+        topIcon: topIcon,
+        bottomIcon: bottomIcon
+      });
+    }
+
+    // =========================================================================
+    // 💡 사용자가 직접 질문하거나 버튼을 누른 경우 (Gemini API 정상 호출)
+    // =========================================================================
     const weatherData = {
-      TA: weatherJson.current?.temperature_2m,
-      REH: weatherJson.current?.relative_humidity_2m,
-      PREP_VAL: weatherJson.current?.precipitation,
-      WM_CODE: weatherJson.current?.weather_code
+      TA: temp,
+      REH: humidity,
+      PREP_VAL: prep,
+      WM_CODE: weatherCode
     };
 
-    // 💡 변경된 핵심 프롬프트: 사용자 요청(음악, 스케줄 등)에 동적으로 대응하고 이모지 깨짐 방지
     const weatherPrompt = `당신은 똑똑한 날씨 AI 비서입니다. 사용자를 "체이스"라고 부르세요.
 사용자 요청: "${message}"
 지역: ${location}
@@ -100,6 +153,20 @@ module.exports = async (req, res) => {
 
     const weatherResult = await textModel.generateContent(weatherPrompt);
     const parsedResult = JSON.parse(weatherResult.response.text());
+
+    // DB 기록 (직접 대화할 때만 저장)
+    if (supabase) {
+      try {
+        await supabase.from('chat_history').insert([{
+          user_message: message,
+          ai_response: parsedResult.reply,
+          location: location,
+          weather_raw_data: weatherData
+        }]);
+      } catch (e) {
+        console.error('수파베이스 저장 실패:', e);
+      }
+    }
 
     return res.status(200).json({
       reply: parsedResult.reply,

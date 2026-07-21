@@ -66,7 +66,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const loadingBubble = isSilent ? null : appendMessage('요청을 처리 중입니다...', 'ai');
 
         try {
-            const bodyData = { message: messageText };
+            // 💡 [수정] isSilent 플래그를 백엔드로 함께 전달하도록 추가!
+            const bodyData = {
+                message: messageText,
+                isSilent: isSilent
+            };
             if (lat && lon) {
                 bodyData.lat = lat;
                 bodyData.lon = lon;
@@ -81,8 +85,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             if (loadingBubble) loadingBubble.remove();
 
-            if (data.reply) {
-                if (!isSilent) appendMessage(data.reply, 'ai');
+            // 💡 [수정] data.reply가 없더라도(isSilent 응답) 상단 카드는 정상적으로 갱신
+            if (data.summary || data.reply) {
+                if (!isSilent && data.reply) appendMessage(data.reply, 'ai');
                 if (weatherSummary && data.summary) weatherSummary.innerHTML = data.summary;
                 if (weatherIcon && data.weatherIcon) weatherIcon.innerHTML = data.weatherIcon;
                 if (topIcon && data.topIcon) { topIcon.innerHTML = data.topIcon; topIcon.style.display = 'block'; }
@@ -104,13 +109,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // 💡 버튼 2개 클릭 이벤트 추가 완료
+    // 버튼 2개 클릭 이벤트
     const btnSchedule = document.querySelector('.btn-schedule');
     const btnMusic = document.querySelector('.btn-music');
 
     if (btnSchedule) {
         btnSchedule.addEventListener('click', () => {
-            // 입력창에 적어둔 글이 있으면 그걸 포함해서 보내고, 없으면 기본 양식을 채워줌
             const currentVal = userInput.value.trim();
             if (currentVal) {
                 sendMessage(`${currentVal} - 이 스케줄에 대한 날씨 피드백 부탁해`);
@@ -127,6 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 접속 시 위치 정보 요청 (isSilent = true 로 실행하여 제미나이 한도 0 소모)
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             (position) => {
