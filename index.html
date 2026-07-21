@@ -1,68 +1,72 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>실시간 날씨 AI 비서</title>
-    <!-- 고급 서체 적용 -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <div class="app-container">
-        <!-- 헤더 영역 -->
         <header class="app-header">
-            <div class="logo">
-                <span class="logo-icon">🌤️</span>
-                <h1>날씨AI</h1>
-            </div>
-            <p class="subtitle">실시간 기상청 데이터와 제미나이 AI가 만나 날씨를 친절하게 알려드려요.</p>
+            <div class="header-icon">🌤️</div>
+            <p class="header-subtitle">실시간 기상청 데이터와 제미나이 AI가 만나 날씨를 친절하게 알려드려요.</p>
         </header>
 
-        <!-- 다크 테마 OOTD 위젯 -->
-        <div id="ootd-widget" style="text-align: center; padding: 15px; background: rgba(255, 255, 255, 0.08); border-radius: 12px; margin: 15px 0; border: 1px solid rgba(255, 255, 255, 0.1); color: #e2e8f0; backdrop-filter: blur(10px);">
-            <div id="pet-avatar" style="font-size: 2.5rem; margin-bottom: 8px;">⏳</div>
-            <p id="ootd-text" style="margin: 0; font-size: 1.05rem; font-weight: 500;">현재 날씨를 분석 중입니다...</p>
+        <!-- 상단 날씨 및 코디 카드 -->
+        <div class="weather-card">
+            <div id="weather-icons-container" class="weather-icons-container">
+                <div id="weather-icon" class="weather-status-icon">⏳</div>
+                <div id="top-icon" class="weather-status-icon" style="display:none;"></div>
+                <div id="bottom-icon" class="weather-status-icon" style="display:none;"></div>
+            </div>
+            <h2 id="weather-summary" class="weather-summary-text">현재 날씨를 분석 중입니다...</h2>
+
+            <div class="action-buttons">
+                <button type="button" class="btn btn-schedule">📅 스케줄 피드백 받기</button>
+                <button type="button" class="btn btn-music">🎵 추천 음악 보기</button>
+            </div>
         </div>
 
-        <!-- AI 호출 버튼 2개 추가 -->
-        <div id="ai-trigger-btns" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
-            <button onclick="triggerScheduleAI()" style="padding: 10px 15px; border-radius: 8px; border: none; background: rgba(76, 175, 80, 0.8); color: white; cursor: pointer; font-weight: bold;">📅 스케줄 피드백 받기</button>
-            <button onclick="triggerMusicAI()" style="padding: 10px 15px; border-radius: 8px; border: none; background: rgba(33, 150, 243, 0.8); color: white; cursor: pointer; font-weight: bold;">🎵 추천 음악 보기</button>
-        </div>
+        <!-- 하단 채팅 및 입력 영역 -->
+        <div class="chat-section">
+            <div id="chat-history" class="chat-history">
 
-        <!-- 채팅창 영역 -->
-        <main class="chat-wrapper">
-            <div class="chat-container" id="chatContainer">
-                <!-- AI의 최초 인사말 -->
-                <div class="message ai-message">
+                <!-- 💡 수정한 첫 AI 메시지 레이아웃 (들여쓰기 공백 완벽 제거) -->
+                <div class="message-row ai">
                     <div class="avatar">🤖</div>
-                    <div class="message-bubble">
-                        안녕하세요, 체이스! 궁금한 지역의 날씨를 물어보세요.<br>
-                        예: <strong>"서울 마포구 합정동 날씨 알려줘"</strong> 또는 <strong>"부산 해운대 지금 비 와?"</strong>
-                    </div>
+                    <div class="chat-bubble">안녕하세요, 체이스! 궁금한 지역의 날씨를 물어보세요.<br>예: "서울 마포구 합정동 날씨 알려줘" 또는 "부산 해운대 지금 비
+                        와?"</div>
                 </div>
+
             </div>
 
-            <!-- 동적 최근 검색 위치 버튼 컨테이너 -->
-            <div id="location-chips" style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;"></div>
-        </main>
+            <!-- 하단 지역 선택 칩 -->
+            <div id="chip-group" class="chip-group">
+                <button type="button" class="chip location-chip">📍 서울 마포구</button>
+                <button type="button" class="chip location-chip">📍 부산 해운대</button>
+                <button type="button" class="chip location-chip">📍 제주 제주시</button>
+            </div>
 
-        <!-- 입력창 영역 -->
-        <footer class="input-wrapper">
-            <form id="chatForm" class="input-container">
-                <input type="text" id="userInput" placeholder="동네 이름과 함께 질문을 입력해 주세요..." required autocomplete="off">
-                <button type="submit" id="sendBtn">
-                    <svg class="send-icon" viewBox="0 0 24 24">
-                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                    </svg>
-                </button>
+            <form id="chat-form" class="input-form">
+                <div class="input-container">
+                    <input type="text" id="user-input" placeholder="동네 이름과 함께 질문을 입력해 주세요..." autocomplete="off"
+                        required>
+                    <button type="submit" class="send-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </div>
             </form>
-        </footer>
+        </div>
     </div>
 
     <script src="script.js"></script>
 </body>
+
 </html>
